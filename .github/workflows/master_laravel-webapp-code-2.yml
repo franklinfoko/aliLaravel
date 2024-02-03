@@ -43,18 +43,52 @@ jobs:
     environment:
       name: 'Production'
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
+    permissions:
+      id-token: write #This is required for requesting the JWT
 
     steps:
       - name: Download artifact from build job
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: php-app
+
+      - name: Unzip artifact for deployment
+        run: unzip release.zip
+      
+      - name: Login to Azure
+        uses: azure/login@v1
+        with:
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_FC34DBB3BD0F422A82E7153F17101C73 }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_ED8C113DCFB04E7FA0E676DCE45DBF9C }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_CE949FE7D723453F814180DB33B30691 }}
 
       - name: 'Deploy to Azure Web App'
         uses: azure/webapps-deploy@v2
         id: deploy-to-webapp
         with:
-          app-name: 'laravel-webapp-code-2'
+          app-name: 'foko-test-webapp'
           slot-name: 'Production'
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_2078D63EBDDD4EE78905EAF1F49109A7 }}
           package: .
+          
+
+  # deploy:
+  #   runs-on: ubuntu-latest
+  #   needs: build
+  #   environment:
+  #     name: 'Production'
+  #     url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
+
+  #   steps:
+  #     - name: Download artifact from build job
+  #       uses: actions/download-artifact@v2
+  #       with:
+  #         name: php-app
+
+  #     - name: 'Deploy to Azure Web App'
+  #       uses: azure/webapps-deploy@v2
+  #       id: deploy-to-webapp
+  #       with:
+  #         app-name: 'laravel-webapp-code-2'
+  #         slot-name: 'Production'
+  #         publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_2078D63EBDDD4EE78905EAF1F49109A7 }}
+  #         package: .
